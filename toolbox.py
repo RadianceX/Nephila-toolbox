@@ -332,6 +332,8 @@ class App:
         self.btn_convert_bson2json = ttk.Button(self.tab3, text="Convert BSON to JSON", style='W.TButton', command=self.__btn_convert_bson2json_click)
         self.btn_convert_bson2json.pack(fill='x')
 
+        self.notebook.add(self.tab3, text="Converter")
+
     def __btn_convert_bson2json_click(self):
         logging.debug("__btn_convert_bson2json_click call")
         inp_file_path = filedialog.askopenfilename(initialdir="./", title="Select file", filetypes=(("b files", "*.b"), ("bson files", "*.bson"), ("all files", "*.*")))
