@@ -1,2 +1,2 @@
 # Nephila-toolbox
-GUI instrumment for testing parsers for Nephila engine
+GUI instrument for testing parsers for Nephila engine
