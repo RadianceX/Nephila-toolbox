@@ -332,11 +332,6 @@ class App:
         self.btn_convert_bson2json = ttk.Button(self.tab3, text="Convert BSON to JSON", style='W.TButton', command=self.__btn_convert_bson2json_click)
         self.btn_convert_bson2json.pack(fill='x')
 
-        # tab3 > btn_convert_links_static2dynamic
-        self.btn_convert_links_static2dynamic = ttk.Button(self.tab3, text="Convert static links to dynamic", style="W.TButton")
-        self.btn_convert_links_static2dynamic.pack(fill='x')
-        self.notebook.add(self.tab3, text="Converter")
-
     def __btn_convert_bson2json_click(self):
         logging.debug("__btn_convert_bson2json_click call")
         inp_file_path = filedialog.askopenfilename(initialdir="./", title="Select file", filetypes=(("b files", "*.b"), ("bson files", "*.bson"), ("all files", "*.*")))
@@ -483,25 +478,6 @@ class App:
             logging.debug("RUN " + test_query)
 
             system("start cmd /k  {command}".format(command=test_query))
-
-    def __bindings(self):
-        pass
-
-    def save_state(self):
-        # settings = {
-        #     'temp_file_path': self.temp_file_path,
-        #     'json_file'=self.json_file
-        # }
-        # with open('settings.py', 'w') as f:
-        #     f.write(settings)
-        pass
-
-    def load_state(self):
-        # with open('settings.py', 'r') as f:
-        #     settings = f.read()
-        # self.json_file = 
-        # object.__dict__ = json.loads(settings)
-        pass
 
 
 def main():
