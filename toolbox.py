@@ -285,7 +285,6 @@ class App:
     def create_tab2(self):
         self.tab2 = ttk.Frame(self.notebook)
         self.label_validate_result_text = tk.StringVar()
-        # self.label_validate_result_text.set('test output')
 
         # tab2 > header
         header = tk.Frame(self.tab2)
@@ -319,10 +318,10 @@ class App:
         self.notebook.add(self.tab2, text="JSON validator")
 
     def create_tab3(self):
+        self.tab3 = tk.Frame(self.notebook)
+
         style = ttk.Style()
         style.configure('W.TButton', font=('calibri', 20))
-
-        self.tab3 = tk.Frame(self.notebook)
 
         # tab3 > btn_convert_json2bson
         self.btn_convert_json2bson = ttk.Button(self.tab3, text="Convert JSON to BSON", style='W.TButton', command=self.__btn_convert_json2bson_click)
@@ -386,14 +385,36 @@ class App:
                         f.write(out_file)
                         logging.debug("json successfully written")
 
-    def update_label_json_status(self):
-        logging.debug("update_label_json_status call")
-        if self.json_file.status == 'valid':
-            self.label_json_status.configure(text='valid json', fg='green')
-        elif self.json_file.status == 'invalid':
-            self.label_json_status.configure(text='invalid json', fg='red')
-        elif self.json_file.status == 'mangled':
-            self.label_json_status.configure(text='mangled json', fg='orange')
+    def __btn_run_click(self):
+        logging.debug("__btn_run_click call")
+        if self.json_file:
+            method = self.tests_available[self.radio_button_value.get()]
+            test_query = self.test_query.get(method)
+
+            if self.temp_file_path is None:
+                parser_path = self.parser_path.get()
+            else:
+                parser_path = self.temp_file_path
+
+            query = self.entry_query.get()
+            test_query = test_query.format(
+                parser_path=parser_path,
+                test_method=method,
+                query=query,
+                search_link=self.json_file.search_link)
+            logging.debug("RUN " + test_query)
+
+            system("start cmd /k  {command}".format(command=test_query))
+
+    def __btn_select_click(self):
+        logging.debug("__btn_select_click call")
+
+        path = filedialog.askopenfilename(initialdir="./", title="Select file", filetypes=(("json files","*.json"), ("all files", "*.*")))
+
+        if path:
+            self.parser_path.set(path)
+            logging.debug(f"SET Path: {path}")
+            self.path_selected()
 
     def __btn_validate_click(self):
         logging.debug("__btn_validate_click call")
@@ -435,15 +456,7 @@ class App:
         for i, test_method in enumerate(self.tests_available, 0):
             ttk.Radiobutton(self.tests_frame, text=test_method, variable=self.radio_button_value, value=i).pack(anchor='w')
 
-    def __btn_select_click(self):
-        logging.debug("__btn_select_click call")
 
-        path = filedialog.askopenfilename(initialdir="./", title="Select file", filetypes=(("json files","*.json"), ("all files", "*.*")))
-
-        if path:
-            self.parser_path.set(path)
-            logging.debug(f"SET Path: {path}")
-            self.path_selected()
 
     def path_selected(self):
         self.json_file = JsonFile(self.parser_path.get())
@@ -460,26 +473,14 @@ class App:
         self.text_box.insert('1.0', self.json_file.json_original_text)
         self.__btn_validate_click()
 
-    def __btn_run_click(self):
-        logging.debug("__btn_run_click call")
-        if self.json_file:
-            method = self.tests_available[self.radio_button_value.get()]
-            test_query = self.test_query.get(method)
-
-            if self.temp_file_path is None:
-                parser_path = self.parser_path.get()
-            else:
-                parser_path = self.temp_file_path
-
-            query = self.entry_query.get()
-            test_query = test_query.format(
-                parser_path=parser_path,
-                test_method=method,
-                query=query,
-                search_link=self.json_file.search_link)
-            logging.debug("RUN " + test_query)
-
-            system("start cmd /k  {command}".format(command=test_query))
+    def update_label_json_status(self):
+        logging.debug("update_label_json_status call")
+        if self.json_file.status == 'valid':
+            self.label_json_status.configure(text='valid json', fg='green')
+        elif self.json_file.status == 'invalid':
+            self.label_json_status.configure(text='invalid json', fg='red')
+        elif self.json_file.status == 'mangled':
+            self.label_json_status.configure(text='mangled json', fg='orange')
 
 
 def main():
