@@ -284,6 +284,7 @@ class App:
 
     def create_tab2(self):
         self.tab2 = ttk.Frame(self.notebook)
+
         self.label_validate_result_text = tk.StringVar()
 
         # tab2 > header
@@ -326,6 +327,7 @@ class App:
         # tab3 > btn_convert_json2bson
         self.btn_convert_json2bson = ttk.Button(self.tab3, text="Convert JSON to BSON", style='W.TButton', command=self.__btn_convert_json2bson_click)
         self.btn_convert_json2bson.pack(fill='x')
+        self.btn_convert_json2bson.configure(state='disabled')  # Converting don't work. Waiting for update of converting tool from other developer
 
         # tab3 > btn_convert_bson2json
         self.btn_convert_bson2json = ttk.Button(self.tab3, text="Convert BSON to JSON", style='W.TButton', command=self.__btn_convert_bson2json_click)
@@ -456,8 +458,6 @@ class App:
         for i, test_method in enumerate(self.tests_available, 0):
             ttk.Radiobutton(self.tests_frame, text=test_method, variable=self.radio_button_value, value=i).pack(anchor='w')
 
-
-
     def path_selected(self):
         self.json_file = JsonFile(self.parser_path.get())
         
@@ -482,6 +482,8 @@ class App:
         elif self.json_file.status == 'mangled':
             self.label_json_status.configure(text='mangled json', fg='orange')
 
+    def __del__(self):
+	    logging.info('Program finished')
 
 def main():
     app = App()
@@ -489,4 +491,3 @@ def main():
 
 if __name__ == '__main__':
     main()
-    logging.info('Program finished')
