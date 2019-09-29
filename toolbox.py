@@ -7,6 +7,7 @@ import tkinter.font as tkfont
 from tkinter import ttk
 from tkinter import filedialog
 from tkinter import messagebox
+
 from os import system
 from os.path import abspath
 from collections import OrderedDict
@@ -134,9 +135,6 @@ class JsonFile:
             self._parse_host()
             self._convert_links()
             self._parse_search_link()
-
-    def get_json_original_text(self):
-        return self.json_original_text
 
     def _parse_search_link(self):
         tmp_json_object = json.loads(self.json_text, object_pairs_hook=OrderedDict)
@@ -352,43 +350,17 @@ class App:
 
     def __btn_convert_json2bson_click(self):
         logging.debug("__btn_convert_json2bson_click call")
-        # if self.json_file:
-        #     default_name = self.json_file.file_path.split('/')[-1].split('.')[0]
-        #     # set output file path
-        #     out_file_path = filedialog.asksaveasfilename(initialdir="./", initialfile=f"{default_name}.bson", title="Save as", filetypes=(("bson files","*.bson"), ("all files", "*.*")))
-        #     logging.debug("path selected: " + out_file_path)
-        #     if out_file_path:
-        #         try:
-        #             tmp = json.loads(self.json_file.json_original_text)
-        #             out_file = bson.dumps(tmp)
-        #             with open(out_file_path, 'wb') as f:
-        #                 f.write(out_file)
-        #                 logging.debug("bson successfully written")
-        #         except json.decoder.JSONDecodeError as e:
-        #             messagebox.showerror('Error', e)
-        #             logging.warning("error due decoding json")
-        # else:
-        #     # select input file path
-        #     inp_file_path = filedialog.askopenfilename(initialdir="./", title="Select file", filetypes=(("json files", "*.json"), ("all files", "*.*")))
-        #     logging.debug("path selected: " + inp_file_path)
-        #     if inp_file_path:
-        #         default_name = inp_file_path.split('/')[-1].split('.')[0]
-        #         with open(inp_file_path, 'r') as f:
-        #             inp_file = json.load(f, object_pairs_hook=OrderedDict)  # convert string from file to json object
-        #             logging.debug("bson file loaded")
-
-        #         out_file = json.dumps(inp_file, indent=4, ensure_ascii=False)  # unsafe converting
-        #         out_file_path = filedialog.asksaveasfilename(initialdir="./", initialfile=f"{default_name}.bson",
-        #                                                      title="Save as",
-        #                                                      filetypes=(("bson files", "*.bson"), ("all files", "*.*")))
-        #         if out_file_path:
-        #             with open(out_file_path, 'w', encoding='utf8') as f:
-        #                 f.write(out_file)
-        #                 logging.debug("json successfully written")
-        
-        inp_dir = filedialog.askdirectory(initialdir='./')
-        if inp_dir:
-            system('start cmd /k java -jar JSON2BSON.jar -d "{path}"'.format(path=inp_dir))
+        if self.json_file:
+            command = f'java -jar json2bson-1.0-all.jar --f "{self.json_file.file_path}"'
+            system(command)
+            messagebox.showinfo("Results","File converted, check `export\\` folder")
+        else:
+            inp_file_path = filedialog.askopenfilename(initialdir="./", title="Select file", filetypes=(("json files", "*.json"), ("all files", "*.*")))
+            logging.debug("inp_file_path: " + inp_file_path)
+            if inp_file_path:
+                command = f'java -jar json2bson-1.0-all.jar --f "{inp_file_path}"'
+                system(command)
+                messagebox.showinfo("Results","File converted, check `export\\` folder")
 
     def __btn_run_click(self):
         logging.debug("__btn_run_click call")
