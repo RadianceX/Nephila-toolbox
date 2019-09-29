@@ -371,7 +371,7 @@ class App:
                 default_name = inp_file_path.split('/')[-1].split('.')[0]
                 out_file_path = filedialog.asksaveasfilename(initialdir="./", initialfile=f"{default_name}.bson", title="Save as", filetypes=(("b files", "*.b"), ("bson files", "*.bson"), ("all files", "*.*")))
                 logging.debug("out_file_path: " + out_file_path)
-                
+
                 if out_file_path:
                     convert_json2bson(inp_file_path, out_file_path)
 
@@ -475,6 +475,7 @@ class App:
 
 
 def convert_json2bson(in_fp, out_fp):
+    logging.debug("convert_json2bson call")
     try:
         with open(in_fp, 'rb') as f:
             json_obj = json.load(f, object_pairs_hook=OrderedDict)
@@ -482,6 +483,7 @@ def convert_json2bson(in_fp, out_fp):
         with open(out_fp, 'wb') as f:
             f.write(bson.encode(json_obj))
             logging.debug("Write file: " + out_fp)
+        logging.info("Converting OK")
 
     except json.decoder.JSONDecodeError as e:
         logging.warning("error due decoding json: " + e.msg)
@@ -490,8 +492,9 @@ def convert_json2bson(in_fp, out_fp):
         logging.warning("error due encoding bson: " + e.msg)
         messagebox.showerror('Error', e)
     except Exception as e:
-        logging.warning("uncnown exception: " + e.msg)
+        logging.warning("unknown exception: " + e.msg)
         messagebox.showerror('Error', e)
+
 
 
 def main():
