@@ -7,6 +7,7 @@ import tkinter.font as tkfont
 from tkinter import ttk
 from tkinter import filedialog
 from tkinter import messagebox
+import os
 from os import system
 from os.path import abspath
 from collections import OrderedDict
@@ -327,7 +328,6 @@ class App:
         # tab3 > btn_convert_json2bson
         self.btn_convert_json2bson = ttk.Button(self.tab3, text="Convert JSON to BSON", style='W.TButton', command=self.__btn_convert_json2bson_click)
         self.btn_convert_json2bson.pack(fill='x')
-        self.btn_convert_json2bson.configure(state='disabled')  # Converting don't work. Waiting for update of converting tool from other developer
 
         # tab3 > btn_convert_bson2json
         self.btn_convert_bson2json = ttk.Button(self.tab3, text="Convert BSON to JSON", style='W.TButton', command=self.__btn_convert_bson2json_click)
@@ -353,39 +353,27 @@ class App:
 
     def __btn_convert_json2bson_click(self):
         logging.debug("__btn_convert_json2bson_click call")
+        
         if self.json_file:
             default_name = self.json_file.file_path.split('/')[-1].split('.')[0]
-            # set output file path
             out_file_path = filedialog.asksaveasfilename(initialdir="./", initialfile=f"{default_name}.bson", title="Save as", filetypes=(("bson files","*.bson"), ("all files", "*.*")))
-            logging.debug("path selected: " + out_file_path)
+            logging.debug("out_file_path: " + out_file_path)
+            
             if out_file_path:
-                try:
-                    tmp = json.loads(self.json_file.json_original_text)
-                    out_file = bson.dumps(tmp)
-                    with open(out_file_path, 'wb') as f:
-                        f.write(out_file)
-                        logging.debug("bson successfully written")
-                except json.decoder.JSONDecodeError as e:
-                    messagebox.showerror('Error', e)
-                    logging.warning("error due decoding json")
+                convert_json2bson(self.json_file.file_path, out_file_path)
+
         else:
             # select input file path
             inp_file_path = filedialog.askopenfilename(initialdir="./", title="Select file", filetypes=(("json files", "*.json"), ("all files", "*.*")))
-            logging.debug("path selected: " + inp_file_path)
+            logging.debug("inp_file_path: " + inp_file_path)
+            
             if inp_file_path:
                 default_name = inp_file_path.split('/')[-1].split('.')[0]
-                with open(inp_file_path, 'r') as f:
-                    inp_file = json.load(f, object_pairs_hook=OrderedDict)  # convert string from file to json object
-                    logging.debug("bson file loaded")
-
-                out_file = json.dumps(inp_file, indent=4, ensure_ascii=False)  # unsafe converting
-                out_file_path = filedialog.asksaveasfilename(initialdir="./", initialfile=f"{default_name}.bson",
-                                                             title="Save as",
-                                                             filetypes=(("bson files", "*.bson"), ("all files", "*.*")))
+                out_file_path = filedialog.asksaveasfilename(initialdir="./", initialfile=f"{default_name}.bson", title="Save as", filetypes=(("b files", "*.b"), ("bson files", "*.bson"), ("all files", "*.*")))
+                logging.debug("out_file_path: " + out_file_path)
+                
                 if out_file_path:
-                    with open(out_file_path, 'w', encoding='utf8') as f:
-                        f.write(out_file)
-                        logging.debug("json successfully written")
+                    convert_json2bson(inp_file_path, out_file_path)
 
     def __btn_run_click(self):
         logging.debug("__btn_run_click call")
@@ -484,6 +472,27 @@ class App:
 
     def __del__(self):
 	    logging.info('Program finished')
+
+
+def convert_json2bson(in_fp, out_fp):
+    try:
+        with open(in_fp, 'rb') as f:
+            json_obj = json.load(f, object_pairs_hook=OrderedDict)
+            logging.debug("Read file: " + in_fp)
+        with open(out_fp, 'wb') as f:
+            f.write(bson.encode(json_obj))
+            logging.debug("Write file: " + out_fp)
+
+    except json.decoder.JSONDecodeError as e:
+        logging.warning("error due decoding json: " + e.msg)
+        messagebox.showerror('Error', e)
+    except bson.errors.InvalidDocument as e:
+        logging.warning("error due encoding bson: " + e.msg)
+        messagebox.showerror('Error', e)
+    except Exception as e:
+        logging.warning("uncnown exception: " + e.msg)
+        messagebox.showerror('Error', e)
+
 
 def main():
     app = App()
