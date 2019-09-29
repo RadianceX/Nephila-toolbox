@@ -336,42 +336,41 @@ class App:
     def __btn_convert_bson2json_click(self):
         logging.debug("__btn_convert_bson2json_click call")
         inp_file_path = filedialog.askopenfilename(initialdir="./", title="Select file", filetypes=(("b files", "*.b"), ("bson files", "*.bson"), ("all files", "*.*")))
-        logging.debug("path selected: " + inp_file_path)
+        logging.debug("inp_file_path: " + inp_file_path)
         if inp_file_path:
             default_name = inp_file_path.split('/')[-1].split('.')[0]
-            with open(inp_file_path, 'rb') as f:
-                inp_file = bson.loads(f.read())
-                logging.debug("bson file loaded")
-            out_file = json.dumps(inp_file, indent=4, ensure_ascii=False)  # unsafe converting
             out_file_path = filedialog.asksaveasfilename(initialdir="./", initialfile=f"{default_name}.json", title="Save as", filetypes=(("json files","*.json"), ("all files", "*.*")))
             if out_file_path:
-                with open(out_file_path, 'w', encoding='utf8') as f:
-                    f.write(out_file)
-                    logging.debug("json successfully written")
+                try:
+                    convert_bson2json(inp_file_path, out_file_path)
+                except json.decoder.JSONDecodeError as e:
+                    logging.warning("error due encoding json: " + str(e))
+                    messagebox.showerror('Error', e)
+                except Exception as e:
+                    logging.error("unknown exception: " + str(e))
+                    messagebox.showerror('Error', e)
 
     def __btn_convert_json2bson_click(self):
         logging.debug("__btn_convert_json2bson_click call")
-        
-        if self.json_file:
-            default_name = self.json_file.file_path.split('/')[-1].split('.')[0]
-            out_file_path = filedialog.asksaveasfilename(initialdir="./", initialfile=f"{default_name}.bson", title="Save as", filetypes=(("bson files","*.bson"), ("all files", "*.*")))
-            logging.debug("out_file_path: " + out_file_path)
-            
-            if out_file_path:
-                convert_json2bson(self.json_file.file_path, out_file_path)
-
-
+        # if file not selected at Tests tab, ask path to file
+        if self.json_file: 
+            inp_file_path = self.json_file.file_path
         else:
             inp_file_path = filedialog.askopenfilename(initialdir="./", title="Select file", filetypes=(("json files", "*.json"), ("all files", "*.*")))
-            logging.debug("inp_file_path: " + inp_file_path)
-            
-            if inp_file_path:
-                default_name = inp_file_path.split('/')[-1].split('.')[0]
-                out_file_path = filedialog.asksaveasfilename(initialdir="./", initialfile=f"{default_name}.bson", title="Save as", filetypes=(("b files", "*.b"), ("bson files", "*.bson"), ("all files", "*.*")))
-                logging.debug("out_file_path: " + out_file_path)
-
-                if out_file_path:
+        logging.debug("inp_file_path: " + inp_file_path)
+        if inp_file_path:
+            default_name = inp_file_path.split('/')[-1].split('.')[0]
+            out_file_path = filedialog.asksaveasfilename(initialdir="./", initialfile=f"{default_name}.b", title="Save as", filetypes=(("b files","*.b"), ("all files", "*.*")))
+            logging.debug("out_file_path: " + out_file_path)
+            if out_file_path:
+                try:
                     convert_json2bson(inp_file_path, out_file_path)
+                except json.decoder.JSONDecodeError as e:
+                    logging.warning("error due decoding json: " + str(e))
+                    messagebox.showerror('Error', e)
+                except Exception as e:
+                    logging.error("unknown exception: " + str(e))
+                    messagebox.showerror('Error', e)
 
     def __btn_run_click(self):
         logging.debug("__btn_run_click call")
@@ -471,28 +470,29 @@ class App:
     def __del__(self):
 	    logging.info('Program finished')
 
+def log_function_call(func):
+    def wrapper(*args, **kwargs):
+        logging.debug(f"{func.__name__} call, args: {args}, kwargs: {kwargs}")
+        return func(*args, **kwargs)
+    return wrapper
 
-def convert_json2bson(in_fp, out_fp):
-    logging.debug("convert_json2bson call")
-    try:
-        with open(in_fp, 'rb') as f:
-            json_obj = json.load(f, object_pairs_hook=OrderedDict)
-            logging.debug("Read file: " + in_fp)
-        with open(out_fp, 'wb') as f:
-            f.write(bson.encode(json_obj))
-            logging.debug("Write file: " + out_fp)
-        logging.info("Converting OK")
+@log_function_call
+def convert_json2bson(inp_fp, out_fp):
+    # load json
+    with open(inp_fp, 'rb') as f:
+        json_obj = json.load(f, object_pairs_hook=OrderedDict)
+    # convert and write bson
+    with open(out_fp, 'wb') as f:
+        f.write(bson.dumps(json_obj))
 
-    except json.decoder.JSONDecodeError as e:
-        logging.warning("error due decoding json: " + e.msg)
-        messagebox.showerror('Error', e)
-    except bson.errors.InvalidDocument as e:
-        logging.warning("error due encoding bson: " + e.msg)
-        messagebox.showerror('Error', e)
-    except Exception as e:
-        logging.warning("unknown exception: " + e.msg)
-        messagebox.showerror('Error', e)
-
+@log_function_call
+def convert_bson2json(inp_fp, out_fp):
+    # load bson
+    with open(inp_fp, 'rb') as f:
+        inp_file = bson.loads(f.read())
+    # convert and write json
+    with open(out_fp, 'w', encoding='utf8') as f:
+        f.write(json.dumps(inp_file, indent=4, ensure_ascii=False))
 
 
 def main():
