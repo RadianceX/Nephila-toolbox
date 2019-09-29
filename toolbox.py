@@ -8,6 +8,7 @@ from tkinter import ttk
 from tkinter import filedialog
 from tkinter import messagebox
 import os
+
 from os import system
 from os.path import abspath
 from collections import OrderedDict
@@ -135,9 +136,6 @@ class JsonFile:
             self._parse_host()
             self._convert_links()
             self._parse_search_link()
-
-    def get_json_original_text(self):
-        return self.json_original_text
 
     def _parse_search_link(self):
         tmp_json_object = json.loads(self.json_text, object_pairs_hook=OrderedDict)
@@ -362,8 +360,8 @@ class App:
             if out_file_path:
                 convert_json2bson(self.json_file.file_path, out_file_path)
 
+
         else:
-            # select input file path
             inp_file_path = filedialog.askopenfilename(initialdir="./", title="Select file", filetypes=(("json files", "*.json"), ("all files", "*.*")))
             logging.debug("inp_file_path: " + inp_file_path)
             
