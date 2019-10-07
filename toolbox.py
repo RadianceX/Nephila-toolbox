@@ -331,6 +331,10 @@ class App:
         self.btn_convert_bson2json = ttk.Button(self.tab3, text="Convert BSON to JSON", style='W.TButton', command=self.__btn_convert_bson2json_click)
         self.btn_convert_bson2json.pack(fill='x')
 
+        # tab3 > btn_convert_links_static2dynamic
+        self.btn_convert_links_static2dynamic = ttk.Button(self.tab3, text="Convert static links to dynamic", style='W.TButton', command=self.__btn_convert_links_static2dynamic_click)
+        self.btn_convert_links_static2dynamic.pack(fill='x')
+
         self.notebook.add(self.tab3, text="Converter")
 
     def __btn_convert_bson2json_click(self):
@@ -371,6 +375,21 @@ class App:
                 except Exception as e:
                     logging.error("unknown exception: " + str(e))
                     messagebox.showerror('Error', e)
+
+    def __btn_convert_links_static2dynamic_click(self):
+        logging.debug("__btn_convert_links_static2dynamic_click call")
+        inp_file_path = filedialog.askopenfilename(initialdir="./", title="Select file", filetypes=(("json files", "*.json"), ("all files", "*.*")))
+        logging.debug("inp_file_path: " + inp_file_path)
+        if inp_file_path:
+            default_name = inp_file_path.split('/')[-1].split('.')[0]
+            out_file_path = filedialog.asksaveasfilename(initialdir="./", initialfile=f"{default_name}_converted.json", title="Save as", filetypes=(("json files","*.json"), ("all files", "*.*")))
+            if out_file_path:
+                try:
+                    convert_links_static2dynamic(inp_file_path, out_file_path)
+                except Exception as e:
+                    logging.error("unknown exception: " + str(e))
+                    messagebox.showerror('Error', e)
+
 
     def __btn_run_click(self):
         logging.debug("__btn_run_click call")
@@ -476,6 +495,46 @@ def log_function_call(func):
         return func(*args, **kwargs)
     return wrapper
 
+def convert_links(obj: dict, host=None):
+    """
+    Converts static links to dynamic
+    https://aniplay.tv -> $scheme$//$hostname$ or %%host%%
+
+    :param obj: json object(dictionary) that will be converted
+    :param host: custom site link e.g. https://aniplay.tv otherwise host will be parsed
+    :return: new converted object
+    """
+    def converter(object_, ignore_nodes_, host_, in_replace_section_=False):
+        for key, value in object_.items():
+            if key == 'replace':  # we are in replace section
+                if isinstance(value, dict):  # if value is dictionary
+                    converter(value, ignore_nodes_, host_, in_replace_section_=True)
+                elif isinstance(value, list):  # if value is list
+                    for item in value:
+                        if isinstance(item, dict):  # check that `item` is dictionary
+                            converter(item, ignore_nodes_, host_, in_replace_section_=True)
+            elif isinstance(value, dict):  # if value is another block of information
+                converter(value, ignore_nodes_, host_)
+            elif isinstance(value, list) and (key not in ignore_nodes_):  # if value is list
+                for item in value:
+                    if isinstance(item, dict):  # check that `item` is dictionary
+                        converter(item, ignore_nodes_, host_)
+            elif isinstance(value, str) and (key not in ignore_nodes_):  # if value is string
+                if not in_replace_section_:
+                    value = value.replace(host_, "$scheme$//$hostname$")
+                    object_[key] = value
+                else:
+                    value = value.replace(host_, r'%%host%%')
+                    object_[key] = value
+
+    _obj = obj.copy()
+    _ignore_nodes = ('host', 'public_link')
+    _host = host or obj.get('host').strip('/')
+
+    converter(_obj, _ignore_nodes, _host)
+
+    return _obj
+
 @log_function_call
 def convert_json2bson(inp_fp, out_fp):
     # load json
@@ -491,6 +550,16 @@ def convert_bson2json(inp_fp, out_fp):
     with open(inp_fp, 'rb') as f:
         inp_file = bson.loads(f.read())
     # convert and write json
+    with open(out_fp, 'w', encoding='utf8') as f:
+        f.write(json.dumps(inp_file, indent=4, ensure_ascii=False))
+
+@log_function_call
+def convert_links_static2dynamic(inp_fp, out_fp):
+    with open(inp_fp, 'rb') as f:
+        inp_file = json.load(f, object_pairs_hook=OrderedDict)
+    
+    inp_file = convert_links(inp_file)
+
     with open(out_fp, 'w', encoding='utf8') as f:
         f.write(json.dumps(inp_file, indent=4, ensure_ascii=False))
 
