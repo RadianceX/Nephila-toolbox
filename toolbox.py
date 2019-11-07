@@ -124,7 +124,7 @@ class JsonFile:
         self.status = ''
 
         self._tests_all = [
-            'manga_list_complete', 'manga_search_complete', 'manga_complete',
+            'manga_list_complete', 'manga_search_complete', 'manga_complete', 'chapter_complete',
             'anime_list_complete', 'anime_search_complete', 'anime_complete', 'episodes_complete'
         ]
 
@@ -223,6 +223,7 @@ class App:
             "manga_list_complete":   'java -jar NigmaX-2.1.jar --console test "{parser_path}" [{test_method}]',
             "manga_search_complete": 'java -jar NigmaX-2.1.jar --console test "{parser_path}" [{test_method}] "{search_link}" "{query}"',
             "manga_complete":        'java -jar NigmaX-2.1.jar --console test "{parser_path}" [{test_method}] "{query}"',
+            "chapter_complete":      'java -jar NigmaX-2.1.jar --console test "{parser_path}" [{test_method}] "{query}"',
             "anime_search_complete": 'java -jar NigmaX-2.1.jar --console test "{parser_path}" [{test_method}] "{search_link}" "{query}"',
             "anime_list_complete":   'java -jar NigmaX-2.1.jar --console test "{parser_path}" [{test_method}]',
             "anime_complete":        'java -jar NigmaX-2.1.jar --console test "{parser_path}" [{test_method}] "{query}"',
